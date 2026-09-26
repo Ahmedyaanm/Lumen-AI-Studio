@@ -1,0 +1,1 @@
+{"name":"who-are-you","version":"1.0.0","description":"A simple interactive page that asks 'Who are you?'","main":"index.html","scripts":{"dev":"vite"},"devDependencies":{"vite":"^5.4.21"}}

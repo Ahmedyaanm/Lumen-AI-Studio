@@ -1,0 +1,450 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Current user and build credits
+  - name: projects
+    description: AI-built projects and files
+  - name: threads
+    description: Account-scoped chat history
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /chat:
+    post:
+      operationId: completeChat
+      tags: [chat]
+      summary: Generate an AI reply
+      description: Completes a chat using the configured AI provider.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: AI reply or a configuration/provider error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the current user and build credits
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentUser"
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List the current user's projects
+      responses:
+        "200":
+          description: Project list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: buildProject
+      tags: [projects]
+      summary: Build a project from a prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BuildInput"
+      responses:
+        "201":
+          description: Built project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /threads:
+    get:
+      operationId: listThreads
+      tags: [threads]
+      summary: List the current user's saved chat threads
+      responses:
+        "200":
+          description: Saved chat threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Thread"
+  /threads/{id}:
+    put:
+      operationId: syncThread
+      tags: [threads]
+      summary: Save an account-scoped chat thread
+      parameters:
+        - $ref: "#/components/parameters/ThreadId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThreadInput"
+      responses:
+        "200":
+          description: Saved thread
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Thread"
+    delete:
+      operationId: deleteThread
+      tags: [threads]
+      summary: Delete a saved chat thread
+      parameters:
+        - $ref: "#/components/parameters/ThreadId"
+      responses:
+        "204":
+          description: Thread deleted
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{id}/files:
+    get:
+      operationId: listProjectFiles
+      tags: [projects]
+      summary: List files in a project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectFileEntry"
+  /projects/{id}/file:
+    post:
+      operationId: readProjectFile
+      tags: [projects]
+      summary: Read a project file
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectFileInput"
+      responses:
+        "200":
+          description: Project file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectFile"
+  /projects/{id}/server:
+    post:
+      operationId: controlProjectServer
+      tags: [projects]
+      summary: Start or stop a project's controlled server
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServerActionInput"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{id}/edit:
+    post:
+      operationId: editProject
+      tags: [projects]
+      summary: Ask the AI to edit an existing project
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditProjectInput"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+  /projects/{id}/download:
+    get:
+      operationId: downloadProject
+      tags: [projects]
+      summary: Download a project archive
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Project archive
+          content:
+            application/gzip:
+              schema:
+                type: string
+                format: binary
+components:
+  parameters:
+    ProjectId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ThreadId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          type: string
+      required: [role, content]
+    ChatInput:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 1.2
+        maxTokens:
+          type: number
+          minimum: 256
+          maximum: 4000
+      required: [messages]
+    ChatResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+        text:
+          type: ["string", "null"]
+        thought:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+      required: [ok, text, thought, error]
+    CurrentUser:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: ["string", "null"]
+        buildCreditsRemaining:
+          type: number
+        workspaceId:
+          type: string
+        workspaceType:
+          type: string
+          enum: [managed-sandbox]
+      required: [id, displayName, email, buildCreditsRemaining, workspaceId, workspaceType]
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+        mode:
+          type: string
+          enum: [chat, build]
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadMessage"
+      required: [id, mode, title, createdAt, updatedAt, messages]
+    ThreadMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          type: string
+        thought:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, role, content, thought, createdAt]
+    ThreadInput:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [chat, build]
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreadMessage"
+      required: [mode, title, createdAt, messages]
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prompt:
+          type: string
+        status:
+          type: string
+          enum: [building, ready, failed]
+        serverStatus:
+          type: string
+          enum: [stopped, starting, running, failed]
+        serverPort:
+          type: ["number", "null"]
+        buildLog:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, prompt, status, serverStatus, serverPort, buildLog, createdAt, updatedAt]
+    BuildInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        prompt:
+          type: string
+          minLength: 1
+      required: [name, prompt]
+    EditProjectInput:
+      type: object
+      properties:
+        instruction:
+          type: string
+          minLength: 1
+      required: [instruction]
+    ProjectFileEntry:
+      type: object
+      properties:
+        path:
+          type: string
+        kind:
+          type: string
+          enum: [file, directory]
+        size:
+          type: number
+      required: [path, kind, size]
+    ProjectFile:
+      type: object
+      properties:
+        path:
+          type: string
+        content:
+          type: string
+        size:
+          type: number
+      required: [path, content, size]
+    ProjectFileInput:
+      type: object
+      properties:
+        path:
+          type: string
+          minLength: 1
+      required: [path]
+    ServerActionInput:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [start, stop]
+      required: [action]
+

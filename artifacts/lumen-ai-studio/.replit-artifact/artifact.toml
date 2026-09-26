@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Lumen AI Studio"
+description = "A focused AI workspace for Chat conversations and Build sessions, with local thread history, mode-aware prompts, and a live preview for generated apps."
+version = "1.0.0"
+id = "artifacts/lumen-ai-studio"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18144
+
+[services.development]
+run = "pnpm --filter @workspace/lumen-ai-studio run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lumen-ai-studio", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/lumen-ai-studio/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18144"
+BASE_PATH = "/"

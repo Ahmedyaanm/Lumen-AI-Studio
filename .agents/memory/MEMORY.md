@@ -1,0 +1,4 @@
+- [Groq provider availability](groq-provider.md) — verify active model IDs from the provider instead of assuming older names remain enabled.
+- [OpenAPI/Zod compatibility](openapi-zod-compatibility.md) — run codegen plus library typecheck because generated helpers may exceed the installed Zod runtime.
+- [Controlled AI build sandbox](build-sandbox-boundary.md) — generated projects run with path, package, command, and environment boundaries rather than unrestricted host access.
+- [AI JSON framing](ai-json-framing.md) — model output may contain valid JSON followed by extra text; extract the first balanced object instead of using the last brace.

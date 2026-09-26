@@ -1,0 +1,16 @@
+{
+  "name": "build-for-me-llm-ai-model",
+  "version": "1.0.0",
+  "description": "A minimal web app that runs a small LLM model in the browser using @xenova/transformers.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "preview": "vite preview",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.0.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

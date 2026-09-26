@@ -1,0 +1,19 @@
+{
+  "name": "simple-web-backend",
+  "version": "1.0.0",
+  "description": "A minimal Express server for demonstration purposes.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "express",
+    "backend",
+    "demo"
+  ],
+  "author": "Lumen Build",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.2"
+  }
+}
